@@ -52,5 +52,5 @@ jobs:
         with:
           app-name: 'iconnect-chatserver'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_0BA4924A296A4CF69073212DBCD1D76D }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_71F5C149F6EF46268080132F3A242400 }}
           package: .
