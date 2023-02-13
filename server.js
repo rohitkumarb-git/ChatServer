@@ -4,6 +4,7 @@ const http = require("http");
 const cors = require("cors");
 const socketio = require("socket.io");
 const formatMessage = require("./utils/chatMessage");
+const filterMsg = require('./utils/filterChatMessage');
 const mongoClient = require("mongodb").MongoClient;
 
 const dbname = "ChatBox";
@@ -21,7 +22,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 const server = http.createServer(app);
-const io = socketio(server);
+const io = socketio(server, {cors: {origin: "*"}});
 
 io.on("connection", (socket) => {
   console.log("New User Logged In with ID " + socket.id);
@@ -30,6 +31,7 @@ io.on("connection", (socket) => {
   socket.on("chatMessage", (data) => {
     //recieves message from client-end along with sender's and reciever's details
     var dataElement = formatMessage(data);
+
     mongoClient.connect(database, (err, db) => {
       if (err) {
         console.log("error", err);
@@ -38,27 +40,43 @@ io.on("connection", (socket) => {
         var onlineUsers = db.db(dbname).collection(userCollection);
 
         const chatcollection = data.agentid + "_" + data.userid;
-        console.log(chatcollection,'chatcollection')
+
         const chat = db.db(dbname).collection(chatcollection);
-        chat.insertOne(dataElement, (err, res) => {
+        chat.insertOne(filterMsg(data,  data.msgType), (err, res) => {
           //inserts message to into the database
           if (err) throw err;
-          // console.log(dataElement,'dataelement')
-          socket.emit("message", dataElement); //emits message back to the user for display
+          console.log(dataElement, "------dataelement----", socket.id);
+          console.log(data.msgType,'------data.msgType')
+          socket.emit("message", filterMsg(data,  data.msgType)); //emits message back to the user for display
         });
         const currentName =
-          data.msgType === "user" ? data.username : data.agentname;
-        // console.log(currentName)
-        onlineUsers.findOne({ name: data.username }, (err, res) => {
-          //checks if the recipient of the message is online
-          if (err) throw err;
-          if (res != null) {
-            //if the recipient is found online, the message is emmitted to him/her
-            console.log(res.ID, "user");
-            socket.to(res.ID).emit("message", dataElement);
-          }
-        });
-        onlineUsers.findOne({ name: data.agentname }, (err, res) => {
+          data.msgType === "user" ? data.userid : data.agentid;
+        // console.log(currentName, 'currentName')
+        if (data.msgType !== "user") {
+          onlineUsers.findOne({ typeId: data.userid }, (err, res) => {
+            //checks if the recipient of the message is online
+            if (err) throw err;
+            if (res != null) {
+              //if the recipient is found online, the message is emmitted to him/her
+              console.log(res.ID, currentName, "AGENT");
+              console.log(filterMsg(data, 'agent'));
+              socket.to(res.ID).emit("message", filterMsg(data, 'agent'));
+            }
+          });
+        } else {
+          onlineUsers.findOne({ typeId: data.agentid }, (err, res) => {
+            //checks if the recipient of the message is online
+            if (err) throw err;
+            if (res != null) {
+              //if the recipient is found online, the message is emmitted to him/her
+              console.log(res.ID, "user");
+              console.log(filterMsg(data, 'user'));
+              socket.to(res.ID).emit("message", filterMsg(data, 'user'));
+            }
+          });
+        }
+
+        /* onlineUsers.findOne({ name: data.agentname }, (err, res) => {
           //checks if the recipient of the message is online
           if (err) throw err;
           if (res != null) {
@@ -66,7 +84,7 @@ io.on("connection", (socket) => {
             console.log(res.ID, "agent");
             socket.to(res.ID).emit("message", dataElement);
           }
-        });
+        });*/
       }
       db.close();
     });
@@ -75,7 +93,7 @@ io.on("connection", (socket) => {
   socket.on("userDetails", (data) => {
     //checks if a new user has logged in and recieves the established chat details
     mongoClient.connect(database, (err, db) => {
-      // console.log(data,'data')
+      console.log(data, "data");
       if (err) throw err;
       else {
         var onlineUser = {};
@@ -84,18 +102,20 @@ io.on("connection", (socket) => {
             //forms JSON object for the user details
             ID: socket.id,
             name: data.username,
+            typeId: data.userid,
           };
         } else {
           onlineUser = {
             //forms JSON object for the user details
             ID: socket.id,
             name: data.agentname,
+            typeId: data.agentid,
           };
         }
 
         //  var currentCollection = db.db(dbname).collection(chatCollection);
         const chatcollection = data.agentid + "_" + data.userid;
-        console.log(chatcollection,'collection')
+        console.log(chatcollection, "collection");
         var currentCollection = db.db(dbname).collection(chatcollection);
         var online = db.db(dbname).collection(userCollection);
         online.insertOne(onlineUser, (err, res) => {
