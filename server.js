@@ -20,7 +20,9 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
-
+app.get("/", (req, res) => {
+  res.send("Hello world");
+});
 const server = http.createServer(app);
 const io = socketio(server, {cors: {origin: "*"}});
 
