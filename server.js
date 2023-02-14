@@ -11,7 +11,7 @@ const dbname = "ChatBox";
 //const chatCollection = 'chats'; //collection to store all chats
 const userCollection = "onlineUsers"; //collection to maintain list of currently online users
 
-const port = 3001;
+const port = process.env.PORT | 3001;
 const database =
   "mongodb+srv://rohitkumar:Mongodb@31@iconnect-cluster.kni459t.mongodb.net/test";
 const app = express();
