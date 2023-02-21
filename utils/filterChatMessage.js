@@ -35,6 +35,16 @@ exports.userChatMessage = (data,filter) => {
       time: moment().format("hh:mm a"),
     };
     return msg;
+  } else {
+    msg = {
+      agentname: data.agentname,
+      agentid: data.agentid,
+      userid: data.userid,
+      message: data.msg,
+      date: moment().format("YYYY-MM-DD"),
+      time: moment().format("hh:mm a"),
+    };
+    return msg;
   }
 }
 
