@@ -4,7 +4,7 @@ const http = require("http");
 const cors = require("cors");
 const socketio = require("socket.io");
 const formatMessage = require("./utils/chatMessage");
-const filterMsg = require('./utils/filterChatMessage');
+const {filterMsg, userChatMessage} = require('./utils/filterChatMessage');
 const mongoClient = require("mongodb").MongoClient;
 
 const dbname = "ChatBox";
@@ -50,7 +50,7 @@ io.on("connection", (socket) => {
           if (err) throw err;
          // console.log(dataElement, "------dataelement----", socket.id);
         //  console.log(data.msgType,'------data.msgType')
-          socket.emit("message", filterMsg(data,  data.msgType)); //emits message back to the user for display
+          socket.emit("message", userChatMessage(data,  data.msgType)); //emits message back to the user for display
         });
         const currentName =
           data.msgType === "user" ? data.userid : data.agentid;
