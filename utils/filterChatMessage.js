@@ -4,6 +4,8 @@ exports.filterMsg = (data, filter) => {
   if (filter === "user") {
     msg = {
       agentname: data.agentname,
+      uname:data.username,
+      msgFrom:filter,
       agentid: data.agentid,
       userid: data.userid,
       message: data.msg,
@@ -14,6 +16,8 @@ exports.filterMsg = (data, filter) => {
   } else {
     msg = {
       username: data.username,
+      aname: data.agentname,
+      msgFrom:filter,
       agentid: data.agentid,
       userid: data.userid,
       message: data.msg,
@@ -28,6 +32,8 @@ exports.userChatMessage = (data,filter) => {
   if (filter === "user") {
     msg = {
       username: data.username,
+      aname:data.agentname,
+      msgFrom:filter,
       agentid: data.agentid,
       userid: data.userid,
       message: data.msg,
@@ -38,6 +44,8 @@ exports.userChatMessage = (data,filter) => {
   } else {
     msg = {
       agentname: data.agentname,
+      uname:data.username,
+      msgFrom:filter,
       agentid: data.agentid,
       userid: data.userid,
       message: data.msg,
